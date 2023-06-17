@@ -1,13 +1,11 @@
 [package]
-name = "CopperMind"
+name = "copper_mind"
 version = "0.1.0"
 authors = ["Andrew <papsanly@gmail.com>"]
 license = "MIT OR Apache-2.0"
-description = "implementation of a perceptron neural network"
+description = "Implementation of a perceptron neural network"
 repository = "https://github.com/Papsanly/CopperMind"
 keywords = ["neural-network", "perceptron", "data-science"]
 readme = "README.md"
 categories = ["science", "science::neuroscience"]
 edition = "2021"
-
-[dependencies]

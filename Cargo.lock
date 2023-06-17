@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "CopperMind"
+name = "copper_mind"
 version = "0.1.0"
