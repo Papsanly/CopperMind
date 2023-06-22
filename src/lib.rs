@@ -16,31 +16,25 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
     pub fn new(hidden_layer: &[usize]) -> Self {
         let mut weight_counts = vec![INPUT_SIZE];
         weight_counts.extend(hidden_layer);
+
         let mut neuron_counts = hidden_layer.to_vec();
         neuron_counts.push(OUTPUT_SIZE);
 
-        let weights_initializer = |(i, j, k)| -> f32 {
-            let mut rng = rand::thread_rng();
-            rng.gen_range(-1.0..1.0)
-        };
-        let bias_initializer = |(i, j)| -> f32 {
-            let mut rng = rand::thread_rng();
-            rng.gen_range(-1.0..1.0)
-        };
-
+        let mut rng = rand::thread_rng();
         let network = zip(weight_counts, neuron_counts)
             .enumerate()
             .map(|(i, (weight_count, neuron_count))| {
                 (0..neuron_count)
                     .map(|j| Neuron {
                         weights: (0..weight_count)
-                            .map(|k| weights_initializer((i, j, k)))
+                            .map(|k| rng.gen_range(-1.0..1.0))
                             .collect(),
-                        bias: bias_initializer((i, j)),
+                        bias: rng.gen_range(-1.0..1.0),
                     })
                     .collect()
             })
             .collect();
+
         Perceptron { network }
     }
 
