@@ -9,3 +9,6 @@ keywords = ["neural-network", "perceptron", "data-science"]
 readme = "README.md"
 categories = ["science", "science::neuroscience"]
 edition = "2021"
+
+[dependencies]
+rand = "0.8.5"

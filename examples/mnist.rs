@@ -24,9 +24,11 @@ fn main() {
     perceptron.fit(&train_data, &train_labels, EPOCHS);
 
     let prediction = perceptron.predict(&test_data);
+
+    dbg!(prediction.len());
 }
 
-fn read_mnist_labels(dataset: &str) -> Result<Vec<u32>, io::Error> {
+fn read_mnist_labels(dataset: &str) -> Result<Vec<usize>, io::Error> {
     let f = File::open(format!("{}/{}-labels.idx1-ubyte", MNIST_PATH, dataset))?;
     let mut reader = BufReader::new(f).bytes().skip(8);
 
@@ -36,7 +38,7 @@ fn read_mnist_labels(dataset: &str) -> Result<Vec<u32>, io::Error> {
             Some(label) => label?,
             None => break,
         };
-        res.push(label as u32)
+        res.push(label as usize)
     }
 
     Ok(res)
