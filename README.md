@@ -29,12 +29,23 @@ coppermind = "0.1.0"
 Here's a basic example demonstrating how to use CopperMind:
 
 ```rust
-use coppermind::Perceptron;
+use copper_mind::Perceptron;
 
 fn main() {
-    todo!();
+   let train_data = read_mnist_data("train").unwrap();
+   let train_labels = read_mnist_labels("train").unwrap();
+   let test_data = read_mnist_data("t10k").unwrap();
+   let test_labels = read_mnist_labels("t10k").unwrap();
+   
+   let perceptron = Perceptron::<IMG_BUF_SIZE, 10>::new(&HIDDEN_LAYERS);
+   perceptron.fit(&train_data, &train_labels, EPOCHS);
+   let predictions = perceptron.predict(&test_data);
+   
+   println!("MSE: {}", mse(&predictions, &test_labels));
 }
 ```
+
+Full example can be found at `examples/mnist.rs`
 
 ## Contributing
 
