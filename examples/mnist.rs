@@ -16,16 +16,11 @@ fn main() {
     let test_data = read_mnist_data("t10k").unwrap();
     let test_labels = read_mnist_labels("t10k").unwrap();
 
-    dbg!(train_data.len());
-    dbg!(test_data.len());
-
     let perceptron = Perceptron::<IMG_BUF_SIZE, 10>::new(&HIDDEN_LAYERS);
 
     perceptron.fit(&train_data, &train_labels, EPOCHS);
 
-    let prediction = perceptron.predict(&test_data);
-
-    dbg!(prediction.len());
+    let predictions = perceptron.predict(&test_data);
 }
 
 fn read_mnist_labels(dataset: &str) -> Result<Vec<usize>, io::Error> {
