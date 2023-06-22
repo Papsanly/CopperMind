@@ -3,50 +3,60 @@
 
 use copper_mind::Perceptron;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{self, BufReader, Read};
 
 const MNIST_PATH: &str = "data";
-const IMG_WIDTH: usize = 28;
-const IMG_HEIGHT: usize = 28;
+const IMG_BUF_SIZE: usize = 28 * 28;
+const HIDDEN_LAYERS: [usize; 1] = [50];
 const EPOCHS: usize = 20;
 
 fn main() {
-    let train_data = read_mnist("train");
-    let test_data = read_mnist("t10k");
+    let train_data = read_mnist_data("train").unwrap();
+    let train_labels = read_mnist_labels("train").unwrap();
+    let test_data = read_mnist_data("t10k").unwrap();
+    let test_labels = read_mnist_labels("t10k").unwrap();
 
-    let perceptron = Perceptron::new(&[784, 50, 10]);
+    dbg!(train_data.len());
+    dbg!(test_data.len());
 
-    perceptron.fit(&train_data, EPOCHS);
+    let perceptron = Perceptron::<IMG_BUF_SIZE, 10>::new(&HIDDEN_LAYERS);
+
+    perceptron.fit(&train_data, &train_labels, EPOCHS);
 
     let prediction = perceptron.predict(&test_data);
-
-    dbg!(&train_data[0..1]);
-    dbg!(&test_data[0..1]);
 }
 
-fn read_mnist(dataset: &str) -> Vec<([u8; IMG_WIDTH * IMG_HEIGHT], u8)> {
-    let f = File::open(format!("{}/{}-images.idx3-ubyte", MNIST_PATH, dataset)).unwrap();
-    let mut img_reader = BufReader::new(f);
-    img_reader.seek(SeekFrom::Start(16)).unwrap();
-
-    let f = File::open(format!("{}/{}-images.idx3-ubyte", MNIST_PATH, dataset)).unwrap();
-    let mut labels_reader = BufReader::new(f);
-    labels_reader.seek(SeekFrom::Start(8)).unwrap();
+fn read_mnist_labels(dataset: &str) -> Result<Vec<u32>, io::Error> {
+    let f = File::open(format!("{}/{}-labels.idx1-ubyte", MNIST_PATH, dataset))?;
+    let mut reader = BufReader::new(f).bytes().skip(8);
 
     let mut res = Vec::new();
-    let mut img_buf = [0; IMG_WIDTH * IMG_HEIGHT];
-    let mut labels_buf = [0; 1];
     loop {
-        if img_reader.read(&mut img_buf).unwrap() == 0 {
-            break;
-        }
-
-        if labels_reader.read(&mut labels_buf).unwrap() == 0 {
-            break;
-        }
-
-        res.push((img_buf, labels_buf[0]));
+        let label = match reader.next() {
+            Some(label) => label?,
+            None => break,
+        };
+        res.push(label as u32)
     }
 
-    res
+    Ok(res)
+}
+
+fn read_mnist_data(dataset: &str) -> Result<Vec<[f32; IMG_BUF_SIZE]>, io::Error> {
+    let f = File::open(format!("{}/{}-images.idx3-ubyte", MNIST_PATH, dataset))?;
+    let mut reader = BufReader::new(f).bytes().skip(16);
+
+    let mut res = Vec::new();
+    let mut buf = [0.; IMG_BUF_SIZE];
+    'outer: loop {
+        for val in buf.iter_mut() {
+            *val = match reader.next() {
+                Some(byte) => byte? as f32 / 255.,
+                None => break 'outer,
+            };
+        }
+        res.push(buf);
+    }
+
+    Ok(res)
 }
