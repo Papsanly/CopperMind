@@ -22,12 +22,11 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
 
         let mut rng = rand::thread_rng();
         let network = zip(weight_counts, neuron_counts)
-            .enumerate()
-            .map(|(i, (weight_count, neuron_count))| {
+            .map(|(weight_count, neuron_count)| {
                 (0..neuron_count)
-                    .map(|j| Neuron {
+                    .map(|_| Neuron {
                         weights: (0..weight_count)
-                            .map(|k| rng.gen_range(-1.0..1.0))
+                            .map(|_| rng.gen_range(-1.0..1.0))
                             .collect(),
                         bias: rng.gen_range(-1.0..1.0),
                     })
