@@ -37,8 +37,18 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         Perceptron { network }
     }
 
-    pub fn fit(&self, data: &[[f32; INPUT_SIZE]], labels: &[usize], epochs: usize) {
-        todo!()
+    pub fn fit(
+        &mut self,
+        data: &[[f32; INPUT_SIZE]],
+        labels: &[usize],
+        epochs: usize,
+        learn_rate: f32,
+        mini_batches_count: usize,
+    ) {
+        let mini_batches = self.mini_batch(data, labels, mini_batches_count);
+        for _ in 0..epochs {
+            self.update_mini_batch(&mini_batches, learn_rate);
+        }
     }
 
     pub fn predict(&self, data: &[[f32; INPUT_SIZE]]) -> Vec<usize> {
@@ -70,6 +80,44 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
                 .collect();
         }
         activations
+    }
+
+    fn update_mini_batch(
+        &mut self,
+        mini_batches: &[(&[[f32; INPUT_SIZE]], &[usize])],
+        learn_rate: f32,
+    ) {
+        for mini_batch in mini_batches {
+            for (layer_deltas, layer) in zip(self.backprop(mini_batch), &mut self.network) {
+                for ((weights_delta, bias_delta), neuron) in zip(layer_deltas, layer) {
+                    for (weight_delta, weight) in zip(weights_delta, &mut neuron.weights) {
+                        *weight -= learn_rate * weight_delta;
+                    }
+                    neuron.bias -= learn_rate * bias_delta;
+                }
+            }
+        }
+    }
+
+    fn backprop(&self, mini_batch: &(&[[f32; INPUT_SIZE]], &[usize])) -> Vec<Vec<(Vec<f32>, f32)>> {
+        todo!()
+    }
+
+    fn mini_batch<'a>(
+        &self,
+        data: &'a [[f32; INPUT_SIZE]],
+        labels: &'a [usize],
+        count: usize,
+    ) -> Vec<(&'a [[f32; INPUT_SIZE]], &'a [usize])> {
+        let mut res = Vec::new();
+        let len = INPUT_SIZE / count;
+        for i in 0..count {
+            res.push((
+                &data[i * len..(i + 1) * len],
+                &labels[i * len..(i + 1) * len],
+            ));
+        }
+        res
     }
 
     fn activation_fn(val: f32) -> f32 {
