@@ -76,3 +76,77 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         f32::max(0., val)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Perceptron;
+    use crate::Neuron;
+
+    fn get_perceptron() -> Perceptron<4, 1> {
+        Perceptron::<4, 1>::new(&[2])
+    }
+
+    fn assert_mini_batches(mini_batches: Vec<(&[[f32; 4]], &[usize])>) {
+        assert_eq!(
+            mini_batches,
+            vec![
+                ([[0.; 4], [1.; 4]].as_slice(), [1, 2].as_slice()),
+                ([[2.; 4], [3.; 4]].as_slice(), [3, 4].as_slice())
+            ]
+        )
+    }
+
+    #[test]
+    fn test_network_structure() {
+        let perceptron = get_perceptron();
+        let network_structure = perceptron
+            .network
+            .iter()
+            .map(|layer| {
+                layer
+                    .iter()
+                    .map(|neuron| neuron.weights.len())
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(network_structure, vec![vec![4; 2], vec![2; 1]]);
+    }
+
+    #[test]
+    fn test_evaluate() {
+        let perceptron: Perceptron<2, 1> = Perceptron {
+            network: vec![
+                vec![Neuron {
+                    weights: vec![1., 2.],
+                    bias: 1.,
+                }],
+                vec![Neuron {
+                    weights: vec![1.],
+                    bias: -1.,
+                }],
+            ],
+        };
+        let data = [1., 2.];
+        let res = perceptron.evaluate(&data);
+        assert_eq!(res, vec![5.]);
+    }
+
+    #[test]
+    fn test_mini_batching() {
+        let perceptron = get_perceptron();
+        let mini_batches =
+            perceptron.mini_batch(&[[0.; 4], [1.; 4], [2.; 4], [3.; 4]], &[1, 2, 3, 4], 2);
+        assert_mini_batches(mini_batches);
+    }
+
+    #[test]
+    fn test_mini_batching_uneven() {
+        let perceptron = get_perceptron();
+        let mini_batches = perceptron.mini_batch(
+            &[[0.; 4], [1.; 4], [2.; 4], [3.; 4], [4.; 4]],
+            &[1, 2, 3, 4, 5],
+            2,
+        );
+        assert_mini_batches(mini_batches);
+    }
+}
