@@ -88,7 +88,7 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         learn_rate: f32,
     ) {
         for mini_batch in mini_batches {
-            for (layer_deltas, layer) in zip(self.backprop(mini_batch), &mut self.network) {
+            for (layer_deltas, layer) in zip(self.back_prop(mini_batch), &mut self.network) {
                 for ((weights_delta, bias_delta), neuron) in zip(layer_deltas, layer) {
                     for (weight_delta, weight) in zip(weights_delta, &mut neuron.weights) {
                         *weight -= learn_rate * weight_delta;
@@ -99,7 +99,10 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         }
     }
 
-    fn backprop(&self, mini_batch: &(&[[f32; INPUT_SIZE]], &[usize])) -> Vec<Vec<(Vec<f32>, f32)>> {
+    fn back_prop(
+        &self,
+        mini_batch: &(&[[f32; INPUT_SIZE]], &[usize]),
+    ) -> Vec<Vec<(Vec<f32>, f32)>> {
         todo!()
     }
 
