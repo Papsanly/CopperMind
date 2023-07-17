@@ -9,8 +9,8 @@ const MNIST_PATH: &str = "data";
 const IMG_BUF_SIZE: usize = 28 * 28;
 const HIDDEN_LAYERS: [usize; 1] = [50];
 const EPOCHS: usize = 20;
-const LEARN_RATE: f32 = 1.;
-const MINI_BATCH_COUNT: usize = 100;
+const LEARNING_RATE: f32 = 1.;
+const MINI_BATCHES: usize = 10;
 
 fn main() {
     let train_data = read_mnist_data("train").unwrap();
@@ -24,8 +24,8 @@ fn main() {
         &train_data,
         &train_labels,
         EPOCHS,
-        LEARN_RATE,
-        MINI_BATCH_COUNT,
+        LEARNING_RATE,
+        MINI_BATCHES,
     );
 
     let predictions = perceptron.predict(&test_data);
