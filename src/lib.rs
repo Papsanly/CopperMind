@@ -12,6 +12,9 @@ struct Neuron {
     bias: f32,
 }
 
+type Input<const INPUT_SIZE: usize> = [f32; INPUT_SIZE];
+type MiniBatch<'a, const INPUT_SIZE: usize> = (&'a [Input<INPUT_SIZE>], &'a [usize]);
+
 impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, OUTPUT_SIZE> {
     pub fn new(hidden_layer: &[usize]) -> Self {
         let mut weight_counts = vec![INPUT_SIZE];
@@ -39,7 +42,7 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
 
     pub fn fit(
         &mut self,
-        data: &[[f32; INPUT_SIZE]],
+        data: &[Input<INPUT_SIZE>],
         labels: &[usize],
         epochs: usize,
         learn_rate: f32,
@@ -51,7 +54,7 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         }
     }
 
-    pub fn predict(&self, data: &[[f32; INPUT_SIZE]]) -> Vec<usize> {
+    pub fn predict(&self, data: &[Input<INPUT_SIZE>]) -> Vec<usize> {
         data.iter()
             .map(|input| {
                 self.evaluate(input)
@@ -64,7 +67,7 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
             .collect()
     }
 
-    pub fn evaluate(&self, input: &[f32; INPUT_SIZE]) -> Vec<f32> {
+    pub fn evaluate(&self, input: &Input<INPUT_SIZE>) -> Vec<f32> {
         let mut activations = input.to_vec();
         for layer in &self.network {
             activations = layer
@@ -82,36 +85,29 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         activations
     }
 
-    fn update_mini_batch(
-        &mut self,
-        mini_batches: &[(&[[f32; INPUT_SIZE]], &[usize])],
-        learn_rate: f32,
-    ) {
+    fn update_mini_batch(&mut self, mini_batches: &[MiniBatch<INPUT_SIZE>], learn_rate: f32) {
         for mini_batch in mini_batches {
-            for (layer_deltas, layer) in zip(self.back_prop(mini_batch), &mut self.network) {
-                for ((weights_delta, bias_delta), neuron) in zip(layer_deltas, layer) {
-                    for (weight_delta, weight) in zip(weights_delta, &mut neuron.weights) {
+            for (layer_delta, layer) in zip(self.back_prop(mini_batch), &mut self.network) {
+                for (neuron_delta, neuron) in zip(layer_delta, layer) {
+                    for (weight_delta, weight) in zip(neuron_delta.weights, &mut neuron.weights) {
                         *weight -= learn_rate * weight_delta;
                     }
-                    neuron.bias -= learn_rate * bias_delta;
+                    neuron.bias -= learn_rate * neuron_delta.bias;
                 }
             }
         }
     }
 
-    fn back_prop(
-        &self,
-        mini_batch: &(&[[f32; INPUT_SIZE]], &[usize]),
-    ) -> Vec<Vec<(Vec<f32>, f32)>> {
+    fn back_prop(&self, mini_batch: &MiniBatch<INPUT_SIZE>) -> Vec<Vec<Neuron>> {
         todo!()
     }
 
     fn mini_batch<'a>(
         &self,
-        data: &'a [[f32; INPUT_SIZE]],
+        data: &'a [Input<INPUT_SIZE>],
         labels: &'a [usize],
         count: usize,
-    ) -> Vec<(&'a [[f32; INPUT_SIZE]], &'a [usize])> {
+    ) -> Vec<MiniBatch<'a, INPUT_SIZE>> {
         let mut res = Vec::new();
         let len = INPUT_SIZE / count;
         for i in 0..count {
@@ -130,14 +126,13 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
 
 #[cfg(test)]
 mod tests {
-    use super::Perceptron;
-    use crate::Neuron;
+    use super::{MiniBatch, Neuron, Perceptron};
 
     fn get_perceptron() -> Perceptron<4, 1> {
         Perceptron::<4, 1>::new(&[2])
     }
 
-    fn assert_mini_batches(mini_batches: Vec<(&[[f32; 4]], &[usize])>) {
+    fn assert_mini_batches(mini_batches: Vec<MiniBatch<4>>) {
         assert_eq!(
             mini_batches,
             vec![
