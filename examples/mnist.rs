@@ -2,7 +2,8 @@
 // http://yann.lecun.com/exdb/mnist/
 
 use copper_mind::Perceptron;
-use std::fs::File;
+use std::array;
+use std::fs::{self, File};
 use std::io::{self, BufReader, Read};
 
 const MNIST_PATH: &str = "data";
@@ -32,36 +33,14 @@ fn main() {
 }
 
 fn read_mnist_labels(dataset: &str) -> Result<Vec<usize>, io::Error> {
-    let f = File::open(format!("{}/{}-labels.idx1-ubyte", MNIST_PATH, dataset))?;
-    let mut reader = BufReader::new(f).bytes().skip(8);
-
-    let mut res = Vec::new();
-    loop {
-        let label = match reader.next() {
-            Some(label) => label?,
-            None => break,
-        };
-        res.push(label as usize)
-    }
-
-    Ok(res)
+    let bytes = fs::read(format!("{}/{}-labels.idx1-ubyte", MNIST_PATH, dataset))?;
+    Ok(bytes[8..].iter().map(|&b| b as usize).collect())
 }
 
 fn read_mnist_data(dataset: &str) -> Result<Vec<[f32; IMG_BUF_SIZE]>, io::Error> {
-    let f = File::open(format!("{}/{}-images.idx3-ubyte", MNIST_PATH, dataset))?;
-    let mut reader = BufReader::new(f).bytes().skip(16);
-
-    let mut res = Vec::new();
-    let mut buf = [0.; IMG_BUF_SIZE];
-    'outer: loop {
-        for val in buf.iter_mut() {
-            *val = match reader.next() {
-                Some(byte) => byte? as f32 / 255.,
-                None => break 'outer,
-            };
-        }
-        res.push(buf);
-    }
-
-    Ok(res)
+    let bytes = fs::read(format!("{}/{}-images.idx3-ubyte", MNIST_PATH, dataset))?;
+    Ok(bytes[16..]
+        .chunks_exact(IMG_BUF_SIZE)
+        .map(|chunk| array::from_fn(|i| chunk[i] as f32 / 255.))
+        .collect())
 }
