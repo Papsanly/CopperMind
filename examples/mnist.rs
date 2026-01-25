@@ -2,9 +2,7 @@
 // http://yann.lecun.com/exdb/mnist/
 
 use copper_mind::Perceptron;
-use std::array;
-use std::fs::{self, File};
-use std::io::{self, BufReader, Read};
+use std::{array, fs, io};
 
 const MNIST_PATH: &str = "data";
 const IMG_BUF_SIZE: usize = 28 * 28;
