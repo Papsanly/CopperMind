@@ -19,7 +19,7 @@ fn main() {
 
     let mut perceptron = Perceptron::<IMG_BUF_SIZE, 10>::new(&HIDDEN_LAYERS);
 
-    perceptron.fit(
+    perceptron.train(
         &train_data,
         &train_labels,
         EPOCHS,

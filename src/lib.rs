@@ -40,7 +40,7 @@ impl<const INPUT_SIZE: usize, const OUTPUT_SIZE: usize> Perceptron<INPUT_SIZE, O
         Perceptron { network }
     }
 
-    pub fn fit(
+    pub fn train(
         &mut self,
         data: &[Input<INPUT_SIZE>],
         labels: &[usize],
