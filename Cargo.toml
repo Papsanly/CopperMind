@@ -11,4 +11,6 @@ categories = ["science", "science::neuroscience"]
 edition = "2024"
 
 [dependencies]
+bon = "3.9.2"
 rand = "0.8"
+tensor = { version = "0.1.0", path = "../tensor" }
